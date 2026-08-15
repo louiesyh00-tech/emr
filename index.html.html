@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlockMed · 隨身電子病歷</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+
+  :root{
+    --bg:#eef7ff; --surface:#ffffff; --surface2:#f5fbff; --line:#cfe5f7;
+    --text:#17324d; --muted:#66809a; --primary:#3b82c4; --primary2:#6db5e8;
+    --accent:#67c7d9; --green:#68b984; --danger:#e56b72; --shadow:0 16px 45px rgba(39,103,150,.13);
+    --radius:22px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:Inter,"Noto Sans TC",system-ui,sans-serif;background:linear-gradient(135deg,#edf8ff,#f5fbff 45%,#e9f6ff);color:var(--text)}
+  button,input,textarea,select{font:inherit}
+  button{cursor:pointer}
+  .top{
+    position:relative;overflow:hidden;color:#fff;
+    background:linear-gradient(135deg,#1c5b86,#2d84b6 55%,#5dbbd1);
+    min-height:240px;padding:28px 5vw 34px;
+    box-shadow:0 12px 35px rgba(27,91,134,.24)
+  }
+  .top:before{
+    content:"";position:absolute;inset:auto -30px -60px auto;width:280px;height:180px;
+    background:
+      linear-gradient(90deg,rgba(255,255,255,.16) 50%,transparent 50%) 0 0/42px 42px,
+      linear-gradient(rgba(255,255,255,.16) 50%,transparent 50%) 0 0/42px 42px;
+    transform:rotate(-8deg);opacity:.7
+  }
+  .topbar{position:relative;display:flex;justify-content:space-between;gap:18px;align-items:center;max-width:1250px;margin:auto}
+  .brand{display:flex;align-items:center;gap:14px}
+  .pixel-logo{width:52px;height:52px;border-radius:10px;background:#7bd35b;box-shadow:inset -7px -7px 0 #4d9f43,inset 7px 7px 0 #a2e878;display:grid;place-items:center;font-size:26px}
+  .brand h1{font-size:22px;margin:0;font-weight:900;letter-spacing:.3px}
+  .brand small{display:block;opacity:.8;margin-top:3px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .btn{border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:10px 13px;background:rgba(255,255,255,.13);color:#fff;font-weight:700;backdrop-filter:blur(8px)}
+  .btn:hover{background:rgba(255,255,255,.22)}
+  .hero{position:relative;max-width:1250px;margin:30px auto 0}
+  .hero h2{font-size:clamp(28px,4vw,44px);margin:0 0 8px;font-weight:900}
+  .hero p{margin:0;max-width:760px;opacity:.9}
+  .lang{display:flex;align-items:center;gap:8px}
+  .lang select{border:1px solid rgba(255,255,255,.3);background:#fff;color:#24506d;border-radius:10px;padding:9px 10px;font-weight:700}
+  .layout{max-width:1250px;margin:28px auto 60px;padding:0 20px;display:grid;grid-template-columns:245px 1fr;gap:22px}
+  .sidebar{position:sticky;top:16px;align-self:start;background:rgba(255,255,255,.88);border:1px solid var(--line);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow)}
+  .nav{width:100%;display:flex;align-items:center;gap:10px;border:0;background:transparent;color:var(--muted);padding:12px;border-radius:13px;text-align:left;font-weight:700}
+  .nav:hover,.nav.active{background:#e7f5ff;color:#216899}
+  .nav .icon{width:28px;text-align:center}
+  .progress{margin:14px 8px 5px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+  .bar{height:8px;border-radius:99px;background:#e4f0f8;overflow:hidden;margin-top:7px}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--primary),var(--accent));transition:.25s}
+  .content{min-width:0}
+  .section{display:none}.section.active{display:block}
+  .section-title{display:flex;justify-content:space-between;align-items:flex-end;gap:15px;margin:2px 0 16px}
+  .section-title h3{margin:0;font-size:25px}.section-title p{margin:4px 0 0;color:var(--muted);font-size:13px}
+  .card{background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin-bottom:18px}
+  .card h4{margin:0 0 16px;font-size:16px;color:#275a7b;display:flex;align-items:center;gap:8px}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+  label{display:block;font-size:13px;font-weight:700;color:#55738c}
+  input,textarea,select.field{width:100%;margin-top:7px;border:1px solid #cfe1ee;border-radius:12px;background:#fbfdff;color:var(--text);padding:11px 12px;outline:none;transition:.18s}
+  input:focus,textarea:focus,select.field:focus{border-color:#72b6df;box-shadow:0 0 0 4px #e4f5ff}
+  textarea{min-height:90px;resize:vertical}
+  .full{grid-column:1/-1}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:#eef9ff;border:1px solid #cde9f8;color:#36769d;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700}
+  .chip input{width:auto;margin:0}
+  .row-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;flex-wrap:wrap}
+  .primary{border:0;border-radius:12px;background:linear-gradient(135deg,#367fba,#54b6cb);color:#fff;padding:11px 16px;font-weight:800}
+  .secondary{border:1px solid var(--line);border-radius:12px;background:#fff;color:#34637f;padding:11px 16px;font-weight:800}
+  .danger{border:1px solid #f0c8cc;background:#fff7f7;color:#bf4e58}
+  .item-list{display:grid;gap:10px}
+  .item{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;padding:14px;border:1px solid var(--line);background:var(--surface2);border-radius:15px}
+  .item strong{display:block;margin-bottom:4px}.item small{color:var(--muted)}
+  .remove{border:0;background:#fff;color:#b9555d;border-radius:9px;padding:6px 8px}
+  .notice{border-left:5px solid var(--accent);background:#ecfbff;padding:13px 15px;border-radius:10px;color:#47738c;font-size:13px}
+  .emergency{border-left-color:#ef8a90;background:#fff4f4;color:#92525a}
+  .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .stat{padding:15px;border:1px solid var(--line);border-radius:16px;background:#f8fcff}.stat b{display:block;font-size:23px;margin-top:4px}.stat span{color:var(--muted);font-size:12px}
+  .minecraft-tip{background:linear-gradient(135deg,#e9f8e8,#eefaff);border:1px solid #cce7d0}
+  footer{max-width:1250px;margin:0 auto 40px;padding:0 20px;color:#7892a6;text-align:center;font-size:12px}
+  .modal{display:none;position:fixed;inset:0;background:rgba(17,50,73,.48);z-index:20;padding:20px;align-items:center;justify-content:center}
+  .modal.show{display:flex}.modalbox{max-width:650px;width:100%;background:#fff;border-radius:22px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.25)}
+  @media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:relative;top:0;display:flex;overflow:auto}.nav{min-width:max-content}.progress{display:none}.summary{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:650px){.topbar{align-items:flex-start;flex-direction:column}.actions{justify-content:flex-start}.grid,.grid.three{grid-template-columns:1fr}.summary{grid-template-columns:1fr 1fr}.card{padding:16px}}
+  @media print{
+    .top{min-height:auto;padding:20px}.actions,.sidebar,.row-actions,.modal,footer{display:none!important}
+    .layout{display:block;margin:0}.section{display:block!important}.card{box-shadow:none;break-inside:avoid}
+    body{background:#fff}.content{width:100%}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="topbar">
+    <div class="brand">
+      <div class="pixel-logo">✚</div>
+      <div><h1>BlockMed</h1><small data-i18n="subtitle">Minecraft 風格・隨身電子病歷</small></div>
+    </div>
+    <div class="actions">
+      <div class="lang"><span>🌐</span><select id="language" aria-label="Language">
+        <option value="zh-TW">繁體中文</option><option value="en">English</option><option value="ja">日本語</option>
+        <option value="ko">한국어</option><option value="vi">Tiếng Việt</option><option value="th">ไทย</option>
+        <option value="id">Bahasa Indonesia</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option>
+      </select></div>
+      <button class="btn" id="saveBtn">💾 <span data-i18n="save">儲存</span></button>
+      <button class="btn" id="exportBtn">⬇️ <span data-i18n="export">匯出 JSON</span></button>
+      <button class="btn" onclick="window.print()">🖨️ <span data-i18n="print">列印</span></button>
+    </div>
+  </div>
+  <div class="hero">
+    <h2 data-i18n="heroTitle">我的隨身電子病歷</h2>
+    <p data-i18n="heroDesc">把重要健康資訊整理在一個離線優先、可列印、可跨語言閱讀的單頁檔案中。</p>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <button class="nav active" data-target="overview"><span class="icon">🏠</span><span data-i18n="navOverview">總覽</span></button>
+    <button class="nav" data-target="personal"><span class="icon">👤</span><span data-i18n="navPersonal">個人資料</span></button>
+    <button class="nav" data-target="history"><span class="icon">📜</span><span data-i18n="navHistory">病史</span></button>
+    <button class="nav" data-target="surgery"><span class="icon">🏥</span><span data-i18n="navSurgery">手術／住院</span></button>
+    <button class="nav" data-target="meds"><span class="icon">💊</span><span data-i18n="navMeds">用藥與過敏</span></button>
+    <button class="nav" data-target="family"><span class="icon">👨‍👩‍👧</span><span data-i18n="navFamily">家族史</span></button>
+    <button class="nav" data-target="lifestyle"><span class="icon">🥗</span><span data-i18n="navLifestyle">生活史</span></button>
+    <button class="nav" data-target="other"><span class="icon">🧬</span><span data-i18n="navOther">其他重要資訊</span></button>
+    <div class="progress"><span data-i18n="completion">資料完整度</span><div class="bar"><i id="progressBar"></i></div><b id="progressText">0%</b></div>
+  </aside>
+
+  <main class="content">
+    <section class="section active" id="overview">
+      <div class="section-title"><div><h3 data-i18n="overviewTitle">健康資料總覽</h3><p data-i18n="overviewDesc">急診、旅行、就醫或日常備份時快速查看。</p></div></div>
+      <div class="summary">
+        <div class="stat"><span data-i18n="statName">姓名</span><b id="sName">—</b></div>
+        <div class="stat"><span data-i18n="statBlood">血型</span><b id="sBlood">—</b></div>
+        <div class="stat"><span data-i18n="statAllergy">過敏</span><b id="sAllergy">0</b></div>
+        <div class="stat"><span data-i18n="statMeds">用藥</span><b id="sMeds">0</b></div>
+      </div>
+      <div class="card notice emergency"><b data-i18n="emergencyTitle">🚑 緊急就醫提示</b><p data-i18n="emergencyText">此網站是個人健康資訊整理工具，不取代醫師診斷。若有急症，請立即聯絡當地緊急醫療服務。</p></div>
+      <div class="card minecraft-tip">
+        <h4>⛏️ <span data-i18n="minecraftTitle">Minecraft Health Pack</span></h4>
+        <p data-i18n="minecraftDesc">使用方塊、像素與淡藍色介面呈現，但內容以醫療資訊的清楚與可讀性為優先。</p>
+      </div>
+    </section>
+
+    <section class="section" id="personal">
+      <div class="section-title"><div><h3 data-i18n="personalTitle">個人與緊急聯絡資料</h3><p data-i18n="personalDesc">建議填寫與護照／身分證件一致的英文姓名。</p></div></div>
+      <div class="card">
+        <h4>👤 <span data-i18n="basic">基本資料</span></h4>
+        <div class="grid three">
+          <label data-i18n="fullName">姓名<input data-key="name" placeholder="Your full name"></label>
+          <label data-i18n="englishName">英文姓名<input data-key="englishName" placeholder="English name"></label>
+          <label data-i18n="dob">出生日期<input type="date" data-key="dob"></label>
+          <label data-i18n="sex">生理性別／性別<input data-key="sex"></label>
+          <label data-i18n="blood">血型<select class="field" data-key="blood"><option value="">—</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option><option>不詳</option></select></label>
+          <label data-i18n="weight">體重<input data-key="weight" placeholder="kg"></label>
+          <label data-i18n="height">身高<input data-key="height" placeholder="cm"></label>
+          <label data-i18n="nationality">國籍／地區<input data-key="nationality"></label>
+          <label data-i18n="idNumber">證件號碼（可選）<input data-key="idNumber"></label>
+          <label class="full" data-i18n="address">居住地／地址<input data-key="address"></label>
+          <label data-i18n="phone">電話<input data-key="phone"></label>
+          <label data-i18n="email">Email<input data-key="email" type="email"></label>
+        </div>
+      </div>
+      <div class="card">
+        <h4>🚨 <span data-i18n="emergencyContact">緊急聯絡人</span></h4>
+        <div class="grid three">
+          <label data-i18n="contactName">姓名<input data-key="contactName"></label>
+          <label data-i18n="relation">關係<input data-key="contactRelation"></label>
+          <label data-i18n="contactPhone">電話<input data-key="contactPhone"></label>
+          <label class="full" data-i18n="contactNote">備註<textarea data-key="contactNote"></textarea></label>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="history">
+      <div class="section-title"><div><h3 data-i18n="historyTitle">疾病史與醫療紀錄</h3><p data-i18n="historyDesc">包含現在疾病、過去疾病、慢性病、感染史與重要檢查。</p></div></div>
+      <div class="card">
+        <h4>🩺 <span data-i18n="currentConditions">目前疾病／健康問題</span></h4>
+        <textarea data-key="currentConditions" data-i18n-placeholder="placeholderConditions" placeholder="例如：高血壓、氣喘……"></textarea>
+      </div>
+      <div class="card">
+        <h4>📋 <span data-i18n="pastHistory">過去疾病史</span></h4>
+        <textarea data-key="pastHistory" placeholder="疾病名稱、診斷年份、治療結果……"></textarea>
+      </div>
+      <div class="card">
+        <h4>🧪 <span data-i18n="tests">重要檢查／檢驗</span></h4>
+        <div class="grid">
+          <label data-i18n="lastCheckup">最近一次健檢日期<input type="date" data-key="lastCheckup"></label>
+          <label data-i18n="imaging">重要影像檢查<textarea data-key="imaging"></textarea></label>
+          <label class="full" data-i18n="lab">重要檢驗結果<textarea data-key="labs"></textarea></label>
+        </div>
+      </div>
+      <div class="card">
+        <h4>💉 <span data-i18n="vaccines">疫苗與感染史</span></h4>
+        <div class="grid">
+          <label class="full" data-i18n="vaccination">疫苗紀錄<textarea data-key="vaccines"></textarea></label>
+          <label class="full" data-i18n="infection">重要感染／傳染病史<textarea data-key="infections"></textarea></label>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="surgery">
+      <div class="section-title"><div><h3 data-i18n="surgeryTitle">手術、住院與麻醉史</h3><p data-i18n="surgeryDesc">把醫療人員最常需要快速確認的資訊集中在這裡。</p></div></div>
+      <div class="card">
+        <h4>🏥 <span data-i18n="surgeryRecord">手術／住院紀錄</span></h4>
+        <div id="surgeryList" class="item-list"></div>
+        <div class="grid" style="margin-top:14px">
+          <label data-i18n="procedure">手術／處置名稱<input id="surgName"></label>
+          <label data-i18n="surgDate">日期<input id="surgDate" type="date"></label>
+          <label data-i18n="hospital">醫院／機構<input id="surgHospital"></label>
+          <label data-i18n="anesthesia">麻醉方式<input id="surgAnesthesia"></label>
+          <label class="full" data-i18n="surgNote">結果／併發症／備註<textarea id="surgNote"></textarea></label>
+        </div>
+        <div class="row-actions"><button class="primary" onclick="addSurgery()" data-i18n="add">＋ 新增紀錄</button></div>
+      </div>
+    </section>
+
+    <section class="section" id="meds">
+      <div class="section-title"><div><h3 data-i18n="medsTitle">用藥、過敏與醫療器材</h3><p data-i18n="medsDesc">藥名最好同時記錄學名／英文名與劑量。</p></div></div>
+      <div class="card">
+        <h4>💊 <span data-i18n="medRecord">目前用藥</span></h4>
+        <div id="medList" class="item-list"></div>
+        <div class="grid" style="margin-top:14px">
+          <label data-i18n="drug">藥物名稱<input id="medName"></label>
+          <label data-i18n="dose">劑量／頻率<input id="medDose"></label>
+          <label data-i18n="reason">用途／適應症<input id="medReason"></label>
+          <label data-i18n="startDate">開始日期<input id="medStart" type="date"></label>
+        </div>
+        <div class="row-actions"><button class="primary" onclick="addMed()" data-i18n="add">＋ 新增紀錄</button></div>
+      </div>
+      <div class="card">
+        <h4>⚠️ <span data-i18n="allergies">過敏史</span></h4>
+        <div class="grid">
+          <label data-i18n="drugAllergy">藥物過敏<textarea data-key="drugAllergy" placeholder="藥物＋反應"></textarea></label>
+          <label data-i18n="foodAllergy">食物過敏<textarea data-key="foodAllergy" placeholder="食物＋反應"></textarea></label>
+          <label data-i18n="otherAllergy">其他過敏<textarea data-key="otherAllergy" placeholder="乳膠、昆蟲、環境……"></textarea></label>
+          <label data-i18n="adverse">嚴重藥物不良反應<textarea data-key="adverseReactions"></textarea></label>
+        </div>
+      </div>
+      <div class="card">
+        <h4>🦿 <span data-i18n="devices">植入物／醫療器材</span></h4>
+        <textarea data-key="devices" placeholder="心律調節器、人工關節、植入式裝置……"></textarea>
+      </div>
+    </section>
+
+    <section class="section" id="family">
+      <div class="section-title"><div><h3 data-i18n="familyTitle">家族病史</h3><p data-i18n="familyDesc">記錄一等親的重要疾病、癌症與遺傳性疾病。</p></div></div>
+      <div class="card">
+        <h4>👨‍👩‍👧 <span data-i18n="familyRecord">家族史</span></h4>
+        <textarea data-key="familyHistory" style="min-height:180px" placeholder="例如：父親－高血壓、糖尿病；母親－甲狀腺疾病；兄弟姊妹－……"></textarea>
+      </div>
+      <div class="card">
+        <h4>🧬 <span data-i18n="genetic">遺傳／家族性疾病</span></h4>
+        <textarea data-key="geneticHistory"></textarea>
+      </div>
+    </section>
+
+    <section class="section" id="lifestyle">
+      <div class="section-title"><div><h3 data-i18n="lifeTitle">生活史與其他病史</h3><p data-i18n="lifeDesc">提供醫療人員理解生活型態與風險因素的背景。</p></div></div>
+      <div class="card">
+        <h4>🥗 <span data-i18n="lifeRecord">生活型態</span></h4>
+        <div class="grid">
+          <label data-i18n="smoking">吸菸史<textarea data-key="smoking"></textarea></label>
+          <label data-i18n="alcohol">飲酒史<textarea data-key="alcohol"></textarea></label>
+          <label data-i18n="exercise">運動習慣<textarea data-key="exercise"></textarea></label>
+          <label data-i18n="diet">飲食習慣／特殊飲食<textarea data-key="diet"></textarea></label>
+          <label data-i18n="sleep">睡眠<textarea data-key="sleep"></textarea></label>
+          <label data-i18n="occupation">職業／工作暴露<textarea data-key="occupation"></textarea></label>
+        </div>
+      </div>
+      <div class="card">
+        <h4>✈️ <span data-i18n="travel">旅遊／暴露史</span></h4>
+        <textarea data-key="travelExposure" placeholder="近期旅遊地點、動物接觸、職業暴露等……"></textarea>
+      </div>
+    </section>
+
+    <section class="section" id="other">
+      <div class="section-title"><div><h3 data-i18n="otherTitle">其他重要資訊</h3><p data-i18n="otherDesc">容易被忘記、但在就醫時可能很重要的欄位。</p></div></div>
+      <div class="card">
+        <h4>🧷 <span data-i18n="otherRecord">其他醫療資訊</span></h4>
+        <div class="grid">
+          <label data-i18n="specialNeeds">特殊醫療需求<textarea data-key="specialNeeds"></textarea></label>
+          <label data-i18n="carePreferences">照護偏好／醫療意願<textarea data-key="carePreferences"></textarea></label>
+          <label data-i18n="organ">器官捐贈／醫療決定代理人<textarea data-key="organDonation"></textarea></label>
+          <label data-i18n="religious">重要文化／溝通需求<textarea data-key="communicationNeeds"></textarea></label>
+          <label class="full" data-i18n="otherNotes">其他備註<textarea data-key="otherNotes" style="min-height:140px"></textarea></label>
+        </div>
+      </div>
+      <div class="card">
+        <h4>🔐 <span data-i18n="privacy">隱私提醒</span></h4>
+        <p class="notice" data-i18n="privacyText">此單頁網站會把資料儲存在目前瀏覽器的 localStorage。若使用共享電腦，請不要輸入不必要的高度敏感資訊，並在離開前清除資料。</p>
+        <div class="row-actions">
+          <button class="secondary danger" onclick="clearAll()" data-i18n="clear">清除全部資料</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<footer>BlockMed · Minecraft-inspired personal medical record · <span data-i18n="footer">靜態單頁版，無後端資料庫。</span></footer>
+
+<div class="modal" id="modal">
+  <div class="modalbox">
+    <h3 data-i18n="exportTitle">匯出完成</h3>
+    <p data-i18n="exportDesc">你的資料已產生 JSON 檔案，可作為備份或日後匯入功能的基礎。</p>
+    <div class="row-actions"><button class="primary" onclick="closeModal()" data-i18n="close">關閉</button></div>
+  </div>
+</div>
+
+<script>
+const I18N = {
+"zh-TW":{subtitle:"Minecraft 風格・隨身電子病歷",save:"儲存",export:"匯出 JSON",print:"列印",heroTitle:"我的隨身電子病歷",heroDesc:"把重要健康資訊整理在一個離線優先、可列印、可跨語言閱讀的單頁檔案中。",navOverview:"總覽",navPersonal:"個人資料",navHistory:"病史",navSurgery:"手術／住院",navMeds:"用藥與過敏",navFamily:"家族史",navLifestyle:"生活史",navOther:"其他重要資訊",completion:"資料完整度",overviewTitle:"健康資料總覽",overviewDesc:"急診、旅行、就醫或日常備份時快速查看。",statName:"姓名",statBlood:"血型",statAllergy:"過敏",statMeds:"用藥",emergencyTitle:"🚑 緊急就醫提示",emergencyText:"此網站是個人健康資訊整理工具，不取代醫師診斷。若有急症，請立即聯絡當地緊急醫療服務。",minecraftTitle:"Minecraft Health Pack",minecraftDesc:"使用方塊、像素與淡藍色介面呈現，但內容以醫療資訊的清楚與可讀性為優先。",personalTitle:"個人與緊急聯絡資料",personalDesc:"建議填寫與護照／身分證件一致的英文姓名。",basic:"基本資料",fullName:"姓名",englishName:"英文姓名",dob:"出生日期",sex:"生理性別／性別",blood:"血型",weight:"體重",height:"身高",nationality:"國籍／地區",idNumber:"證件號碼（可選）",address:"居住地／地址",phone:"電話",email:"Email",emergencyContact:"緊急聯絡人",contactName:"姓名",relation:"關係",contactPhone:"電話",contactNote:"備註",historyTitle:"疾病史與醫療紀錄",historyDesc:"包含現在疾病、過去疾病、慢性病、感染史與重要檢查。",currentConditions:"目前疾病／健康問題",pastHistory:"過去疾病史",tests:"重要檢查／檢驗",lastCheckup:"最近一次健檢日期",imaging:"重要影像檢查",lab:"重要檢驗結果",vaccines:"疫苗與感染史",vaccination:"疫苗紀錄",infection:"重要感染／傳染病史",surgeryTitle:"手術、住院與麻醉史",surgeryDesc:"把醫療人員最常需要快速確認的資訊集中在這裡。",surgeryRecord:"手術／住院紀錄",procedure:"手術／處置名稱",surgDate:"日期",hospital:"醫院／機構",anesthesia:"麻醉方式",surgNote:"結果／併發症／備註",add:"＋ 新增紀錄",medsTitle:"用藥、過敏與醫療器材",medsDesc:"藥名最好同時記錄學名／英文名與劑量。",medRecord:"目前用藥",drug:"藥物名稱",dose:"劑量／頻率",reason:"用途／適應症",startDate:"開始日期",allergies:"過敏史",drugAllergy:"藥物過敏",foodAllergy:"食物過敏",otherAllergy:"其他過敏",adverse:"嚴重藥物不良反應",devices:"植入物／醫療器材",familyTitle:"家族病史",familyDesc:"記錄一等親的重要疾病、癌症與遺傳性疾病。",familyRecord:"家族史",genetic:"遺傳／家族性疾病",lifeTitle:"生活史與其他病史",lifeDesc:"提供醫療人員理解生活型態與風險因素的背景。",lifeRecord:"生活型態",smoking:"吸菸史",alcohol:"飲酒史",exercise:"運動習慣",diet:"飲食習慣／特殊飲食",sleep:"睡眠",occupation:"職業／工作暴露",travel:"旅遊／暴露史",otherTitle:"其他重要資訊",otherDesc:"容易被忘記、但在就醫時可能很重要的欄位。",otherRecord:"其他醫療資訊",specialNeeds:"特殊醫療需求",carePreferences:"照護偏好／醫療意願",organ:"器官捐贈／醫療決定代理人",religious:"重要文化／溝通需求",otherNotes:"其他備註",privacy:"隱私提醒",privacyText:"此單頁網站會把資料儲存在目前瀏覽器的 localStorage。若使用共享電腦，請不要輸入不必要的高度敏感資訊，並在離開前清除資料。",clear:"清除全部資料",footer:"靜態單頁版，無後端資料庫。",exportTitle:"匯出完成",exportDesc:"你的資料已產生 JSON 檔案，可作為備份或日後匯入功能的基礎。",close:"關閉"},
+"en":{subtitle:"Minecraft-inspired · Personal Medical Record",save:"Save",export:"Export JSON",print:"Print",heroTitle:"My Portable Medical Record",heroDesc:"Keep essential health information in one printable, multilingual, offline-first page.",navOverview:"Overview",navPersonal:"Personal",navHistory:"Medical History",navSurgery:"Surgery / Hospital",navMeds:"Medications / Allergies",navFamily:"Family History",navLifestyle:"Lifestyle",navOther:"Other Important Info",completion:"Completion",overviewTitle:"Health Overview",overviewDesc:"Quick reference for emergencies, travel, appointments, or backup.",statName:"Name",statBlood:"Blood type",statAllergy:"Allergies",statMeds:"Medications",emergencyTitle:"🚑 Emergency note",emergencyText:"This is a personal health information organizer, not a substitute for medical advice. For an emergency, contact local emergency medical services.",minecraftTitle:"Minecraft Health Pack",minecraftDesc:"Blocky pixel-inspired visuals with a calm blue palette; readability and medical clarity come first.",personalTitle:"Personal & Emergency Contact",personalDesc:"Consider using the English name shown on your passport or ID.",basic:"Basic information",fullName:"Full name",englishName:"English name",dob:"Date of birth",sex:"Sex / gender",blood:"Blood type",weight:"Weight",height:"Height",nationality:"Nationality / region",idNumber:"ID / document number (optional)",address:"Address",phone:"Phone",email:"Email",emergencyContact:"Emergency contact",contactName:"Name",relation:"Relationship",contactPhone:"Phone",contactNote:"Notes",historyTitle:"Medical History & Records",historyDesc:"Current and past conditions, chronic diseases, infections, and important tests.",currentConditions:"Current conditions / health problems",pastHistory:"Past medical history",tests:"Important tests",lastCheckup:"Last health checkup",imaging:"Important imaging",lab:"Important lab results",vaccines:"Vaccines & infection history",vaccination:"Vaccination record",infection:"Important infections / communicable diseases",surgeryTitle:"Surgery, Hospitalization & Anesthesia",surgeryDesc:"Keep details clinicians may need to confirm quickly.",surgeryRecord:"Surgery / hospitalization records",procedure:"Procedure",surgDate:"Date",hospital:"Hospital / facility",anesthesia:"Anesthesia",surgNote:"Outcome / complications / notes",add:"＋ Add record",medsTitle:"Medications, Allergies & Devices",medsDesc:"Record generic/English names and doses when possible.",medRecord:"Current medications",drug:"Medication",dose:"Dose / frequency",reason:"Purpose / indication",startDate:"Start date",allergies:"Allergies",drugAllergy:"Drug allergies",foodAllergy:"Food allergies",otherAllergy:"Other allergies",adverse:"Serious adverse drug reactions",devices:"Implants / medical devices",familyTitle:"Family History",familyDesc:"Record major conditions, cancers, and hereditary diseases in close relatives.",familyRecord:"Family history",genetic:"Genetic / hereditary diseases",lifeTitle:"Lifestyle & Other History",lifeDesc:"Context that may help clinicians understand lifestyle and risk factors.",lifeRecord:"Lifestyle",smoking:"Smoking history",alcohol:"Alcohol history",exercise:"Exercise",diet:"Diet / special diet",sleep:"Sleep",occupation:"Occupation / exposure",travel:"Travel / exposure history",otherTitle:"Other Important Information",otherDesc:"Often-forgotten details that can still matter during care.",otherRecord:"Other medical information",specialNeeds:"Special medical needs",carePreferences:"Care preferences / medical wishes",organ:"Organ donation / healthcare proxy",religious:"Cultural / communication needs",otherNotes:"Other notes",privacy:"Privacy note",privacyText:"This single-page site stores data in your browser's localStorage. On shared computers, avoid unnecessary highly sensitive information and clear data before leaving.",clear:"Clear all data",footer:"Static single-page edition · no backend database.",exportTitle:"Export ready",exportDesc:"Your information has been exported as JSON for backup or future import functionality.",close:"Close"},
+"ja":{subtitle:"Minecraft風・携帯用電子カルテ",save:"保存",export:"JSON出力",print:"印刷",heroTitle:"携帯用電子カルテ",heroDesc:"重要な健康情報を多言語・印刷対応の1ページに整理します。",navOverview:"概要",navPersonal:"個人情報",navHistory:"病歴",navSurgery:"手術・入院",navMeds:"薬・アレルギー",navFamily:"家族歴",navLifestyle:"生活歴",navOther:"その他",completion:"入力率",overviewTitle:"健康情報の概要",overviewDesc:"救急・旅行・受診時にすぐ確認できます。",statName:"氏名",statBlood:"血液型",statAllergy:"アレルギー",statMeds:"服薬",emergencyTitle:"🚑 緊急時の注意",emergencyText:"このサイトは健康情報を整理するためのもので、診断の代わりにはなりません。緊急時は地域の救急サービスへ連絡してください。",minecraftTitle:"Minecraft Health Pack",minecraftDesc:"ブロックとピクセルを使ったデザインですが、医療情報の読みやすさを優先しています。",personalTitle:"個人情報・緊急連絡先",personalDesc:"パスポート等の英字表記を使用すると便利です。",basic:"基本情報",fullName:"氏名",englishName:"英字氏名",dob:"生年月日",sex:"性別",blood:"血液型",weight:"体重",height:"身長",nationality:"国籍・地域",idNumber:"身分証番号（任意）",address:"住所",phone:"電話",email:"メール",emergencyContact:"緊急連絡先",contactName:"氏名",relation:"続柄",contactPhone:"電話",contactNote:"備考",historyTitle:"病歴・医療記録",historyDesc:"現在・過去の病気、慢性疾患、感染症、重要検査。",currentConditions:"現在の病気・健康問題",pastHistory:"既往歴",tests:"重要な検査",lastCheckup:"最終健診日",imaging:"画像検査",lab:"検査結果",vaccines:"予防接種・感染歴",vaccination:"予防接種",infection:"重要な感染症",surgeryTitle:"手術・入院・麻酔歴",surgeryDesc:"医療者がすぐ確認できる情報をまとめます。",surgeryRecord:"手術・入院記録",procedure:"手術・処置",surgDate:"日付",hospital:"病院・施設",anesthesia:"麻酔",surgNote:"結果・合併症・備考",add:"＋ 記録を追加",medsTitle:"服薬・アレルギー・医療機器",medsDesc:"一般名・英語名と用量も記録すると便利です。",medRecord:"現在の服薬",drug:"薬剤名",dose:"用量・頻度",reason:"目的・適応",startDate:"開始日",allergies:"アレルギー歴",drugAllergy:"薬剤アレルギー",foodAllergy:"食物アレルギー",otherAllergy:"その他のアレルギー",adverse:"重篤な薬物副作用",devices:"インプラント・医療機器",familyTitle:"家族歴",familyDesc:"近親者の主要疾患、がん、遺伝性疾患を記録します。",familyRecord:"家族歴",genetic:"遺伝性疾患",lifeTitle:"生活歴・その他の病歴",lifeDesc:"生活習慣やリスク要因の背景を記録します。",lifeRecord:"生活習慣",smoking:"喫煙歴",alcohol:"飲酒歴",exercise:"運動習慣",diet:"食事・特殊食",sleep:"睡眠",occupation:"職業・曝露",travel:"旅行・曝露歴",otherTitle:"その他の重要情報",otherDesc:"受診時に役立つ、忘れやすい情報です。",otherRecord:"その他の医療情報",specialNeeds:"特別な医療ニーズ",carePreferences:"ケアの希望",organ:"臓器提供・医療代理人",religious:"文化・コミュニケーション上の希望",otherNotes:"その他",privacy:"プライバシー",privacyText:"データはこのブラウザのlocalStorageに保存されます。共有PCでは不要な機微情報を入力せず、終了前に削除してください。",clear:"全データを削除",footer:"静的1ページ版・バックエンドなし",exportTitle:"出力完了",exportDesc:"JSONファイルとして保存しました。",close:"閉じる"},
+"ko":{subtitle:"Minecraft 스타일 · 휴대용 전자 의료 기록",save:"저장",export:"JSON 내보내기",print:"인쇄",heroTitle:"나의 휴대용 의료 기록",heroDesc:"중요한 건강 정보를 다국어·인쇄 가능한 한 페이지에 정리합니다.",navOverview:"개요",navPersonal:"개인 정보",navHistory:"병력",navSurgery:"수술·입원",navMeds:"약물·알레르기",navFamily:"가족력",navLifestyle:"생활 습관",navOther:"기타 정보",completion:"작성률",overviewTitle:"건강 정보 개요",overviewDesc:"응급 상황, 여행, 진료 시 빠르게 확인하세요.",statName:"이름",statBlood:"혈액형",statAllergy:"알레르기",statMeds:"복용약",emergencyTitle:"🚑 응급 안내",emergencyText:"이 사이트는 개인 건강정보 정리용이며 의학적 진단을 대신하지 않습니다. 응급 상황에서는 현지 응급의료 서비스에 연락하세요.",minecraftTitle:"Minecraft Health Pack",minecraftDesc:"블록·픽셀 디자인을 사용하되 의료 정보의 가독성을 우선합니다.",personalTitle:"개인 정보 및 비상 연락처",personalDesc:"여권이나 신분증의 영문 이름을 사용하면 좋습니다.",basic:"기본 정보",fullName:"이름",englishName:"영문 이름",dob:"생년월일",sex:"성별",blood:"혈액형",weight:"체중",height:"신장",nationality:"국적·지역",idNumber:"신분증 번호(선택)",address:"주소",phone:"전화",email:"이메일",emergencyContact:"비상 연락처",contactName:"이름",relation:"관계",contactPhone:"전화",contactNote:"메모",historyTitle:"병력 및 의료 기록",historyDesc:"현재·과거 질환, 만성질환, 감염, 중요 검사.",currentConditions:"현재 질환·건강 문제",pastHistory:"과거 병력",tests:"중요 검사",lastCheckup:"최근 건강검진",imaging:"영상 검사",lab:"검사 결과",vaccines:"예방접종·감염력",vaccination:"예방접종 기록",infection:"중요 감염병",surgeryTitle:"수술·입원·마취력",surgeryDesc:"의료진이 빠르게 확인할 정보를 모읍니다.",surgeryRecord:"수술·입원 기록",procedure:"수술·처치",surgDate:"날짜",hospital:"병원·기관",anesthesia:"마취",surgNote:"결과·합병증·메모",add:"＋ 기록 추가",medsTitle:"복용약·알레르기·의료기기",medsDesc:"가능하면 성분명/영문명과 용량도 기록하세요.",medRecord:"현재 복용약",drug:"약물명",dose:"용량·횟수",reason:"용도·적응증",startDate:"시작일",allergies:"알레르기력",drugAllergy:"약물 알레르기",foodAllergy:"음식 알레르기",otherAllergy:"기타 알레르기",adverse:"중대한 약물 이상반응",devices:"삽입물·의료기기",familyTitle:"가족력",familyDesc:"가까운 가족의 주요 질환, 암, 유전질환을 기록합니다.",familyRecord:"가족력",genetic:"유전성 질환",lifeTitle:"생활력 및 기타 병력",lifeDesc:"생활 습관과 위험 요인을 이해하는 데 도움이 되는 정보입니다.",lifeRecord:"생활 습관",smoking:"흡연력",alcohol:"음주력",exercise:"운동",diet:"식습관·특수식",sleep:"수면",occupation:"직업·노출",travel:"여행·노출력",otherTitle:"기타 중요 정보",otherDesc:"진료 시 중요할 수 있는, 자주 잊는 정보입니다.",otherRecord:"기타 의료 정보",specialNeeds:"특별한 의료 필요",carePreferences:"치료·돌봄 선호",organ:"장기기증·의료 대리인",religious:"문화·의사소통 요구",otherNotes:"기타 메모",privacy:"개인정보 안내",privacyText:"데이터는 현재 브라우저의 localStorage에 저장됩니다. 공용 PC에서는 불필요한 민감정보를 입력하지 말고 사용 후 삭제하세요.",clear:"전체 데이터 삭제",footer:"정적 단일 페이지 · 백엔드 없음",exportTitle:"내보내기 완료",exportDesc:"JSON 파일로 내보냈습니다.",close:"닫기"},
+"vi":{subtitle:"Phong cách Minecraft · Hồ sơ y tế cá nhân",save:"Lưu",export:"Xuất JSON",print:"In",heroTitle:"Hồ sơ y tế cá nhân",heroDesc:"Tập hợp thông tin sức khỏe quan trọng trong một trang đa ngôn ngữ, có thể in và ưu tiên ngoại tuyến.",navOverview:"Tổng quan",navPersonal:"Cá nhân",navHistory:"Tiền sử",navSurgery:"Phẫu thuật / nhập viện",navMeds:"Thuốc / dị ứng",navFamily:"Tiền sử gia đình",navLifestyle:"Lối sống",navOther:"Thông tin khác",completion:"Mức hoàn thành",overviewTitle:"Tổng quan sức khỏe",overviewDesc:"Tra cứu nhanh khi cấp cứu, đi du lịch hoặc đi khám.",statName:"Tên",statBlood:"Nhóm máu",statAllergy:"Dị ứng",statMeds:"Thuốc",emergencyTitle:"🚑 Lưu ý cấp cứu",emergencyText:"Đây là công cụ sắp xếp thông tin sức khỏe cá nhân, không thay thế tư vấn y tế. Khi cấp cứu, hãy liên hệ dịch vụ cấp cứu địa phương.",minecraftTitle:"Minecraft Health Pack",minecraftDesc:"Thiết kế lấy cảm hứng từ khối và pixel với tông xanh dịu; ưu tiên khả năng đọc thông tin y tế.",personalTitle:"Thông tin cá nhân & liên hệ khẩn cấp",personalDesc:"Nên dùng tên tiếng Anh giống hộ chiếu hoặc giấy tờ tùy thân.",basic:"Thông tin cơ bản",fullName:"Họ và tên",englishName:"Tên tiếng Anh",dob:"Ngày sinh",sex:"Giới tính",blood:"Nhóm máu",weight:"Cân nặng",height:"Chiều cao",nationality:"Quốc tịch / khu vực",idNumber:"Số giấy tờ (tùy chọn)",address:"Địa chỉ",phone:"Điện thoại",email:"Email",emergencyContact:"Liên hệ khẩn cấp",contactName:"Tên",relation:"Quan hệ",contactPhone:"Điện thoại",contactNote:"Ghi chú",historyTitle:"Tiền sử & hồ sơ y tế",historyDesc:"Bệnh hiện tại, bệnh cũ, bệnh mạn tính, nhiễm trùng và xét nghiệm quan trọng.",currentConditions:"Bệnh / vấn đề sức khỏe hiện tại",pastHistory:"Tiền sử bệnh",tests:"Xét nghiệm quan trọng",lastCheckup:"Lần khám sức khỏe gần nhất",imaging:"Chẩn đoán hình ảnh",lab:"Kết quả xét nghiệm",vaccines:"Tiêm chủng & tiền sử nhiễm trùng",vaccination:"Lịch tiêm chủng",infection:"Nhiễm trùng quan trọng",surgeryTitle:"Phẫu thuật, nhập viện & gây mê",surgeryDesc:"Tập trung các thông tin bác sĩ thường cần kiểm tra nhanh.",surgeryRecord:"Ghi nhận phẫu thuật / nhập viện",procedure:"Thủ thuật",surgDate:"Ngày",hospital:"Bệnh viện / cơ sở",anesthesia:"Gây mê",surgNote:"Kết quả / biến chứng / ghi chú",add:"＋ Thêm",medsTitle:"Thuốc, dị ứng & thiết bị",medsDesc:"Nên ghi tên hoạt chất/tên tiếng Anh và liều dùng.",medRecord:"Thuốc đang dùng",drug:"Tên thuốc",dose:"Liều / tần suất",reason:"Mục đích / chỉ định",startDate:"Ngày bắt đầu",allergies:"Tiền sử dị ứng",drugAllergy:"Dị ứng thuốc",foodAllergy:"Dị ứng thực phẩm",otherAllergy:"Dị ứng khác",adverse:"Phản ứng bất lợi nghiêm trọng",devices:"Thiết bị / vật cấy ghép",familyTitle:"Tiền sử gia đình",familyDesc:"Ghi các bệnh quan trọng, ung thư và bệnh di truyền ở người thân.",familyRecord:"Tiền sử gia đình",genetic:"Bệnh di truyền",lifeTitle:"Lối sống & tiền sử khác",lifeDesc:"Thông tin giúp hiểu lối sống và yếu tố nguy cơ.",lifeRecord:"Lối sống",smoking:"Hút thuốc",alcohol:"Rượu bia",exercise:"Tập luyện",diet:"Chế độ ăn",sleep:"Giấc ngủ",occupation:"Nghề nghiệp / phơi nhiễm",travel:"Du lịch / phơi nhiễm",otherTitle:"Thông tin quan trọng khác",otherDesc:"Những chi tiết dễ quên nhưng có thể quan trọng khi điều trị.",otherRecord:"Thông tin y tế khác",specialNeeds:"Nhu cầu y tế đặc biệt",carePreferences:"Ưu tiên chăm sóc / mong muốn điều trị",organ:"Hiến tạng / người đại diện y tế",religious:"Nhu cầu văn hóa / giao tiếp",otherNotes:"Ghi chú khác",privacy:"Lưu ý riêng tư",privacyText:"Dữ liệu được lưu trong localStorage của trình duyệt hiện tại. Trên máy dùng chung, không nhập thông tin nhạy cảm không cần thiết và hãy xóa sau khi dùng.",clear:"Xóa toàn bộ",footer:"Trang tĩnh · không có cơ sở dữ liệu máy chủ",exportTitle:"Đã xuất",exportDesc:"Thông tin đã được xuất thành tệp JSON.",close:"Đóng"},
+"th":{subtitle:"สไตล์ Minecraft · เวชระเบียนส่วนตัว",save:"บันทึก",export:"ส่งออก JSON",print:"พิมพ์",heroTitle:"เวชระเบียนส่วนตัวแบบพกพา",heroDesc:"รวมข้อมูลสุขภาพสำคัญไว้ในหน้าเดียว รองรับหลายภาษาและพิมพ์ได้",navOverview:"ภาพรวม",navPersonal:"ข้อมูลส่วนตัว",navHistory:"ประวัติการรักษา",navSurgery:"ผ่าตัด / นอนโรงพยาบาล",navMeds:"ยา / แพ้ยา",navFamily:"ประวัติครอบครัว",navLifestyle:"ไลฟ์สไตล์",navOther:"ข้อมูลสำคัญอื่น ๆ",completion:"ความครบถ้วน",overviewTitle:"ภาพรวมสุขภาพ",overviewDesc:"ดูข้อมูลอย่างรวดเร็วในกรณีฉุกเฉิน เดินทาง หรือพบแพทย์",statName:"ชื่อ",statBlood:"กรุ๊ปเลือด",statAllergy:"การแพ้",statMeds:"ยา",emergencyTitle:"🚑 หมายเหตุฉุกเฉิน",emergencyText:"เว็บไซต์นี้ใช้จัดระเบียบข้อมูลสุขภาพส่วนบุคคล ไม่สามารถแทนคำแนะนำจากแพทย์ได้ หากฉุกเฉินให้ติดต่อบริการฉุกเฉินในพื้นที่",minecraftTitle:"Minecraft Health Pack",minecraftDesc:"ดีไซน์แบบบล็อกและพิกเซลในโทนฟ้าอ่อน โดยเน้นความชัดเจนของข้อมูลทางการแพทย์",personalTitle:"ข้อมูลส่วนตัวและผู้ติดต่อฉุกเฉิน",personalDesc:"ควรใช้ชื่อภาษาอังกฤษตามหนังสือเดินทางหรือเอกสารประจำตัว",basic:"ข้อมูลพื้นฐาน",fullName:"ชื่อ-นามสกุล",englishName:"ชื่อภาษาอังกฤษ",dob:"วันเกิด",sex:"เพศ",blood:"กรุ๊ปเลือด",weight:"น้ำหนัก",height:"ส่วนสูง",nationality:"สัญชาติ / ภูมิภาค",idNumber:"เลขเอกสาร (ไม่บังคับ)",address:"ที่อยู่",phone:"โทรศัพท์",email:"อีเมล",emergencyContact:"ผู้ติดต่อฉุกเฉิน",contactName:"ชื่อ",relation:"ความสัมพันธ์",contactPhone:"โทรศัพท์",contactNote:"หมายเหตุ",historyTitle:"ประวัติการรักษาและข้อมูลทางการแพทย์",historyDesc:"โรคปัจจุบัน โรคในอดีต โรคเรื้อรัง การติดเชื้อ และผลตรวจสำคัญ",currentConditions:"โรค / ปัญหาสุขภาพปัจจุบัน",pastHistory:"ประวัติการเจ็บป่วย",tests:"การตรวจสำคัญ",lastCheckup:"ตรวจสุขภาพล่าสุด",imaging:"การตรวจภาพ",lab:"ผลตรวจทางห้องปฏิบัติการ",vaccines:"วัคซีนและประวัติการติดเชื้อ",vaccination:"ประวัติวัคซีน",infection:"การติดเชื้อสำคัญ",surgeryTitle:"ประวัติผ่าตัด นอนโรงพยาบาล และดมยาสลบ",surgeryDesc:"รวมข้อมูลที่บุคลากรทางการแพทย์ต้องตรวจสอบอย่างรวดเร็ว",surgeryRecord:"บันทึกผ่าตัด / นอนโรงพยาบาล",procedure:"หัตถการ",surgDate:"วันที่",hospital:"โรงพยาบาล / สถานพยาบาล",anesthesia:"การดมยาสลบ",surgNote:"ผลลัพธ์ / ภาวะแทรกซ้อน / หมายเหตุ",add:"＋ เพิ่มรายการ",medsTitle:"ยา การแพ้ และอุปกรณ์ทางการแพทย์",medsDesc:"ควรบันทึกชื่อสามัญ/ภาษาอังกฤษและขนาดยา",medRecord:"ยาที่ใช้อยู่",drug:"ชื่อยา",dose:"ขนาด / ความถี่",reason:"วัตถุประสงค์ / ข้อบ่งใช้",startDate:"วันที่เริ่ม",allergies:"ประวัติการแพ้",drugAllergy:"แพ้ยา",foodAllergy:"แพ้อาหาร",otherAllergy:"แพ้อื่น ๆ",adverse:"อาการไม่พึงประสงค์รุนแรง",devices:"อุปกรณ์ฝัง / อุปกรณ์การแพทย์",familyTitle:"ประวัติครอบครัว",familyDesc:"บันทึกโรคสำคัญ มะเร็ง และโรคทางพันธุกรรมของญาติใกล้ชิด",familyRecord:"ประวัติครอบครัว",genetic:"โรคทางพันธุกรรม",lifeTitle:"ประวัติชีวิตและสุขภาพอื่น ๆ",lifeDesc:"ข้อมูลช่วยให้แพทย์เข้าใจพฤติกรรมและปัจจัยเสี่ยง",lifeRecord:"ไลฟ์สไตล์",smoking:"ประวัติสูบบุหรี่",alcohol:"ประวัติดื่มแอลกอฮอล์",exercise:"การออกกำลังกาย",diet:"อาหาร / อาหารเฉพาะ",sleep:"การนอนหลับ",occupation:"อาชีพ / การสัมผัส",travel:"การเดินทาง / การสัมผัส",otherTitle:"ข้อมูลสำคัญอื่น ๆ",otherDesc:"รายละเอียดที่มักลืมแต่มีประโยชน์เมื่อรับการรักษา",otherRecord:"ข้อมูลทางการแพทย์อื่น ๆ",specialNeeds:"ความต้องการทางการแพทย์พิเศษ",carePreferences:"ความต้องการในการดูแล",organ:"การบริจาคอวัยวะ / ผู้แทนทางการแพทย์",religious:"ความต้องการด้านวัฒนธรรม / การสื่อสาร",otherNotes:"หมายเหตุอื่น ๆ",privacy:"ความเป็นส่วนตัว",privacyText:"ข้อมูลถูกเก็บใน localStorage ของเบราว์เซอร์นี้ หากใช้คอมพิวเตอร์สาธารณะ อย่าบันทึกข้อมูลอ่อนไหวที่ไม่จำเป็นและลบข้อมูลก่อนออก",clear:"ลบข้อมูลทั้งหมด",footer:"หน้าเว็บสแตติก · ไม่มีฐานข้อมูลหลังบ้าน",exportTitle:"ส่งออกแล้ว",exportDesc:"ข้อมูลถูกส่งออกเป็นไฟล์ JSON แล้ว",close:"ปิด"}
+};
+
+const base = I18N.en;
+["id","es","fr","de"].forEach(k=>I18N[k]={...base,
+  subtitle: k==="id"?"Gaya Minecraft · Rekam Medis Pribadi":k==="es"?"Estilo Minecraft · Historia Clínica Personal":k==="fr"?"Style Minecraft · Dossier médical personnel":"Minecraft-Stil · Persönliche Krankenakte",
+  heroTitle:k==="id"?"Rekam Medis Pribadi":k==="es"?"Historia Clínica Personal":k==="fr"?"Dossier médical personnel":"Persönliche Krankenakte"
+});
+
+const KEY="blockmed-v1";
+let state=JSON.parse(localStorage.getItem(KEY)||'{"surgeries":[],"meds":{}}');
+if(!state.surgeries)state.surgeries=[]; if(!Array.isArray(state.meds))state.meds=[];
+
+function applyLang(lang){
+  document.documentElement.lang=lang;
+  const d=I18N[lang]||base;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{if(d[el.dataset.i18n])el.textContent=d[el.dataset.i18n]});
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{if(d[el.dataset.i18nPlaceholder])el.placeholder=d[el.dataset.i18nPlaceholder]});
+  document.getElementById("language").value=lang;
+  localStorage.setItem("blockmed-lang",lang);
+}
+function collect(){
+  document.querySelectorAll("[data-key]").forEach(el=>state[el.dataset.key]=el.value);
+  state.language=document.getElementById("language").value;
+  localStorage.setItem(KEY,JSON.stringify(state));
+  update();
+}
+function load(){
+  document.querySelectorAll("[data-key]").forEach(el=>{if(state[el.dataset.key]!=null)el.value=state[el.dataset.key]});
+  renderLists(); update();
+}
+function update(){
+  document.getElementById("sName").textContent=state.name||"—";
+  document.getElementById("sBlood").textContent=state.blood||"—";
+  const allergyFields=["drugAllergy","foodAllergy","otherAllergy","adverseReactions"];
+  document.getElementById("sAllergy").textContent=allergyFields.filter(k=>(state[k]||"").trim()).length;
+  document.getElementById("sMeds").textContent=state.meds.length;
+  const fields=[...document.querySelectorAll("[data-key]")];
+  const filled=fields.filter(x=>x.value.trim()).length;
+  const pct=fields.length?Math.round(filled/fields.length*100):0;
+  document.getElementById("progressBar").style.width=pct+"%";document.getElementById("progressText").textContent=pct+"%";
+}
+function addSurgery(){
+  const name=document.getElementById("surgName").value.trim();if(!name)return;
+  state.surgeries.push({name,date:surgDate.value,hospital:surgHospital.value,anesthesia:surgAnesthesia.value,note:surgNote.value});
+  ["surgName","surgDate","surgHospital","surgAnesthesia","surgNote"].forEach(id=>document.getElementById(id).value="");
+  collect();renderLists();
+}
+function addMed(){
+  const name=document.getElementById("medName").value.trim();if(!name)return;
+  state.meds.push({name,dose:medDose.value,reason:medReason.value,start:medStart.value});
+  ["medName","medDose","medReason","medStart"].forEach(id=>document.getElementById(id).value="");
+  collect();renderLists();
+}
+function renderLists(){
+  const s=document.getElementById("surgeryList"),m=document.getElementById("medList");
+  s.innerHTML=state.surgeries.map((x,i)=>`<div class="item"><div><strong>${esc(x.name)}</strong><small>${esc(x.date||"")} ${esc(x.hospital||"")} · ${esc(x.anesthesia||"")}<br>${esc(x.note||"")}</small></div><button class="remove" onclick="removeItem('surgeries',${i})">✕</button></div>`).join("")||`<div class="notice">No records yet.</div>`;
+  m.innerHTML=state.meds.map((x,i)=>`<div class="item"><div><strong>${esc(x.name)}</strong><small>${esc(x.dose||"")} · ${esc(x.reason||"")} · ${esc(x.start||"")}</small></div><button class="remove" onclick="removeItem('meds',${i})">✕</button></div>`).join("")||`<div class="notice">No medications yet.</div>`;
+}
+function removeItem(type,i){state[type].splice(i,1);collect();renderLists()}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function clearAll(){if(confirm("Clear all saved medical information?")){localStorage.removeItem(KEY);location.reload()}}
+function exportJSON(){
+  collect();const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="BlockMed-medical-record.json";a.click();URL.revokeObjectURL(a.href);
+  document.getElementById("modal").classList.add("show");
+}
+function closeModal(){document.getElementById("modal").classList.remove("show")}
+
+document.querySelectorAll(".nav").forEach(btn=>btn.addEventListener("click",()=>{
+  document.querySelectorAll(".nav").forEach(x=>x.classList.remove("active"));btn.classList.add("active");
+  document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));document.getElementById(btn.dataset.target).classList.add("active");
+  window.scrollTo({top:260,behavior:"smooth"});
+}));
+document.querySelectorAll("[data-key]").forEach(el=>el.addEventListener("input",collect));
+document.getElementById("language").addEventListener("change",e=>applyLang(e.target.value));
+document.getElementById("saveBtn").addEventListener("click",()=>{collect();alert("Saved / 已儲存")});
+document.getElementById("exportBtn").addEventListener("click",exportJSON);
+applyLang(localStorage.getItem("blockmed-lang")||"zh-TW");
+load();
+if(!localStorage.getItem("blockmed-initialized")){
+  state.name="黃翔毅";
+  state.dob="2011-03-04";
+  state.sex="男";
+  state.nationality="台灣";
+  state.address="新北市三重區正義北路123號13樓之6";
+  state.pastHistory="出生時曾接受肺部手術。";
+  state.currentConditions="幼年生病時曾出現氣管收縮並導致氣喘。";
+  state.surgeries.push({name:"出生時肺部手術",date:"2011-03-04",hospital:"",anesthesia:"",note:"出生時接受肺部手術；詳細手術名稱、醫院與麻醉方式待補充。"});
+  localStorage.setItem("blockmed-initialized","1");
+  collect();
+  renderLists();
+}
+</script>
+</body>
+</html>
